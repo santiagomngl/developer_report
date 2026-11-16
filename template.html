@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Innovation Funding Desk - Developer Report</title>
+<style>
+  :root {
+    --bg: #ffffff; --text: #22201c; --muted: #6b675f; --line: #cfccc2;
+    --box: #ffffff; --panel: #faf9f6; --code: #f3f1ec;
+    --red: #b8432d; --red-bg: #fbe9e3; --red-text: #8f2f1d;
+    --grey: #8a877f; --grey-bg: #f1eee8;
+    --green: #3f9d7a; --green-bg: #e1f3ec; --green-text: #17603f;
+    --blue: #2f6fde; --blue-bg: #e3edff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #181715; --text: #ece9e2; --muted: #a39f95; --line: #55524b;
+      --box: #211f1c; --panel: #1c1b18; --code: #262420;
+      --red: #e0705a; --red-bg: #3a211b; --red-text: #f3a797;
+      --grey: #8f8b82; --grey-bg: #2b2925;
+      --green: #56b892; --green-bg: #17322a; --green-text: #8fdcbb;
+      --blue: #6f9cf5; --blue-bg: #1d2f55;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif; }
+  .layout { display: flex; align-items: flex-start; }
+  .visual { position: sticky; top: 0; height: 100vh; flex: 0 0 54%; padding: 20px 8px 20px 20px;
+    background: var(--panel); border-right: 1px solid var(--line); display: flex; }
+  .visual svg { width: 100%; height: 100%; display: block; }
+  article { flex: 1 1 0; min-width: 0; padding: 40px 40px 70vh; max-width: 760px; }
+
+  article h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 1.2em; }
+  article h2 { font-size: 1.45rem; margin: 2.6em 0 .6em; padding-top: .8em; border-top: 1px solid var(--line); }
+  article h3 { font-size: 1.15rem; margin: 2em 0 .5em; }
+  article h4 { font-size: 1rem; margin: 1.6em 0 .4em; color: var(--muted); }
+  article p, article ul, article ol { margin: 0 0 1em; }
+  article li { margin-bottom: .3em; }
+  article code { background: var(--code); padding: .1em .35em; border-radius: 4px; font-size: .88em;
+    overflow-wrap: anywhere; }
+  article pre { background: var(--code); padding: 14px 16px; border-radius: 8px; overflow-x: auto;
+    font-size: .85rem; line-height: 1.5; }
+  article pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+  article table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: 0 0 1.2em; display: block; overflow-x: auto; }
+  article th, article td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+  article th { background: var(--code); }
+  article > * { transition: opacity .25s; }
+
+  /* diagram */
+  svg text { font-family: inherit; fill: var(--text); }
+  .t { font-size: 15px; font-weight: 650; text-anchor: middle; }
+  .s { font-size: 13px; fill: var(--muted); text-anchor: middle; }
+  .lbl { font-size: 12.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round; }
+  .grp { font-size: 15px; font-weight: 650; }
+  .box rect, rect.cont { fill: var(--box); stroke: var(--line); stroke-width: 1.4;
+    transition: fill .3s, stroke .3s, stroke-width .3s; }
+  rect.cont { fill: none; }
+  .arrow { fill: none; stroke: var(--line); stroke-width: 1.4; }
+  .frame { fill: none; stroke-width: 1.4; stroke-dasharray: 3 4; }
+  .detail { opacity: 0; transition: opacity .35s; pointer-events: none; }
+  .detail.show { opacity: 1; }
+
+  #top-agent rect { fill: var(--red-bg); stroke: var(--red); }
+  #top-agent text { fill: var(--red-text); }
+  #top-data rect { fill: var(--grey-bg); stroke: var(--grey); }
+  #top-web rect { fill: var(--green-bg); stroke: var(--green); }
+  #top-web text { fill: var(--green-text); }
+  .top .t { font-size: 19px; }
+  .top .s { font-size: 13.5px; fill: var(--text); }
+  .top.current rect { stroke-width: 3; }
+
+  .box.hl rect, rect.cont.hl, .top.hl rect { fill: var(--blue-bg) !important; stroke: var(--blue) !important; stroke-width: 2.4; }
+  rect.cont.hl { fill: none !important; }
+  .top.hl text { fill: var(--text) !important; }
+
+  @media (max-width: 900px) {
+    .layout { display: block; }
+    .visual { height: 44vh; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); z-index: 2; }
+    article { padding: 24px 16px 60vh; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="visual" aria-label="Architecture diagram"><svg id="diagram" viewBox="70 40 1140 905" preserveAspectRatio="xMidYMin meet" role="img"></svg></aside>
+  <article id="report">
+<!--REPORT-->
+  </article>
+</div>
+
+<script>
+/* ---------- Diagram definition ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("diagram");
+const el = (tag, attrs = {}, parent = svg, text) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (text != null) n.textContent = text;
+  parent.appendChild(n);
+  return n;
+};
+el("defs").innerHTML =
+  '<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">' +
+  '<path d="M0 0 L10 5 L0 10 z" fill="var(--line)"/></marker>';
+
+function box(parent, id, x, y, w, h, title, lines = [], cls = "box") {
+  const g = el("g", { id, class: cls }, parent);
+  el("rect", { x, y, width: w, height: h, rx: 8 }, g);
+  const lh = cls === "top" ? 28 : 19;
+  const total = (lines.length) * lh;
+  let ty = y + h / 2 - total / 2 + 5;
+  el("text", { x: x + w / 2, y: ty, class: "t" }, g, title);
+  lines.forEach((l, i) => el("text", { x: x + w / 2, y: ty + lh + i * (lh) - (cls === "top" ? 0 : 2), class: "s" }, g, l));
+  return g;
+}
+const arrow = (parent, d, both) =>
+  el("path", Object.assign({ d, class: "arrow", "marker-end": "url(#ah)" }, both ? { "marker-start": "url(#ah)" } : {}), parent);
+const label = (parent, x, y, text, anchor = "start") =>
+  el("text", { x, y, class: "lbl", "text-anchor": anchor }, parent, text);
+
+/* top row, always visible */
+box(svg, "top-agent", 110, 57, 318, 85, "Agent workflow", ["Search, Assessment and Report Agent (SARA)"], "top");
+box(svg, "top-data", 495, 57, 289, 85, "Data contract", ["Record, report, labels"], "top");
+box(svg, "top-web", 881, 57, 289, 85, "Web app", ["Reads and matches"], "top");
+arrow(svg, "M428 100 H492");
+arrow(svg, "M784 100 H878");
+
+/* ----- agent workflow detail ----- */
+const A = el("g", { id: "detail-agent", class: "detail" });
+el("path", { d: "M268 142 V192", class: "arrow", style: "stroke:var(--red)" }, A);
+el("rect", { x: 90, y: 192, width: 1100, height: 738, rx: 12, class: "frame", style: "stroke:var(--red)" }, A);
+box(A, "a-scheduler", 133, 229, 260, 74, "Scheduler", ["a source is due"]);
+arrow(A, "M263 303 V362");
+label(A, 276, 339, "AGENT.md + source_name");
+el("rect", { id: "a-sara", class: "cont", x: 109, y: 366, width: 1061, height: 182, rx: 8 }, A);
+el("text", { x: 133, y: 394, class: "grp" }, A, "SARA");
+box(A, "a-known", 133, 437, 144, 83, "1 Known Calls", ["calls on file"]);
+box(A, "a-discovery", 301, 437, 144, 83, "2 Discovery", ["1 to 3 new calls"]);
+box(A, "a-nodup", 469, 437, 144, 83, "3 No Duplicate", ["new or duplicate"]);
+el("rect", { id: "a-task4", class: "cont", x: 636, y: 406, width: 510, height: 129, rx: 8 }, A);
+el("text", { x: 652, y: 428, class: "grp" }, A, "4 Assessment and report");
+box(A, "a-assess", 652, 437, 144, 83, "Assess", ["steps 1 to 5", "call type + codes"]);
+box(A, "a-record", 816, 437, 144, 83, "Record", ["steps 6 and 7", "save, gate PASS"]);
+box(A, "a-report", 980, 437, 144, 83, "Report", ["step 8", "Types 1 to 3 only"]);
+["M277 479 H298", "M445 479 H466", "M613 479 H633", "M796 479 H813", "M960 479 H977"].forEach(d => arrow(A, d));
+box(A, "a-resources", 133, 598, 260, 91, "resources/ and templates/", ["sources, projects, taxonomy,", "call types, blank templates"]);
+arrow(A, "M225 598 V552");
+label(A, 213, 580, "read", "end");
+arrow(A, "M302 548 V594");
+label(A, 314, 580, "updates scan time");
+box(A, "a-records", 795, 598, 183, 91, "data/fo_records/", ["one file per call", "all call types kept"]);
+box(A, "a-reports", 993, 598, 177, 91, "data/fo_reports/", ["same file name", "Types 1 to 3"]);
+arrow(A, "M887 520 V594");
+label(A, 876, 574, "writes", "end");
+arrow(A, "M1051 520 V594");
+label(A, 1040, 574, "writes", "end");
+el("rect", { id: "a-proto", class: "cont", x: 109, y: 767, width: 852, height: 153, rx: 8 }, A);
+el("text", { x: 133, y: 793, class: "grp" }, A, "Only for Laptop-ran Prototype");
+arrow(A, "M393 655 H746 V805");
+label(A, 734, 748, "question texts, tags", "end");
+arrow(A, "M887 689 V805");
+label(A, 875, 742, "card data", "end");
+arrow(A, "M1081 689 V855 H943");
+label(A, 1021, 848, "detail pages", "middle");
+box(A, "a-website", 133, 809, 221, 92, "Website (live)", ["6 questions, ranked matches,", "filters, browse, detail pages"]);
+box(A, "a-vercel", 418, 809, 212, 92, "Vercel", ["builds the site from", "data/ and resources/"]);
+box(A, "a-github", 698, 809, 241, 92, "GitHub repository", ["check-data, then push", "main is live, branches preview"]);
+arrow(A, "M698 855 H634");
+label(A, 665, 846, "each push", "middle");
+arrow(A, "M418 855 H358");
+label(A, 387, 846, "static site", "middle");
+
+/* ----- data contract detail ----- */
+const D = el("g", { id: "detail-data", class: "detail" });
+el("path", { d: "M640 142 V192", class: "arrow", style: "stroke:var(--grey)" }, D);
+el("rect", { x: 90, y: 192, width: 1100, height: 356, rx: 12, class: "frame", style: "stroke:var(--grey)" }, D);
+box(D, "d-developer", 109, 221, 328, 68, "Developer", ["owns the rules and code lists"]);
+box(D, "d-owners", 476, 221, 328, 68, "Owners", ["maintain sources and projects"]);
+box(D, "d-sara", 843, 221, 327, 68, "SARA", ["writes the data, updates scan time"]);
+box(D, "d-agentmd", 109, 346, 160, 87, "AGENT.md", ["every rule, gate,", "date helper"]);
+box(D, "d-codelists", 278, 346, 159, 87, "Code lists", ["templates/, taxonomy,", "call types"]);
+box(D, "d-sources", 476, 346, 159, 87, "resources/sources/", ["one file per source,", "where to search"]);
+box(D, "d-projects", 645, 346, 159, 87, "resources/projects/", ["one file per project,", "priority flag"]);
+box(D, "d-records", 843, 346, 149, 87, "data/fo_records/", ["one file per call,", "never deleted"]);
+box(D, "d-reports", 1021, 346, 149, 87, "data/fo_reports/", ["one per Type 1 to 3", "call"]);
+["M189 289 V342", "M357 289 V342", "M555 289 V342", "M724 289 V342", "M917 289 V342", "M1095 289 V342", "M1021 390 H996"]
+  .forEach(d => arrow(D, d));
+label(D, 177, 321, "writes", "end");
+label(D, 543, 321, "writes", "end");
+label(D, 905, 321, "writes", "end");
+label(D, 1006, 334, "same id", "middle");
+arrow(D, "M880 433 V481 H572 V437");
+label(D, 736, 474, "source = source_name", "middle");
+arrow(D, "M938 433 V520 H357 V437");
+label(D, 649, 512, "taxonomy codes, call type, categories", "middle");
+
+/* ---------- Which box belongs to which part of the report ---------- */
+/* Keyed by section number; the longest matching prefix wins. */
+const SECTION_MAP = {
+  "1":     ["a-sara"],
+  "1.1":   ["a-sara"],
+  "1.2":   ["a-report"],
+  "1.3":   ["a-sara"],
+  "1.3.1": ["a-scheduler"],
+  "1.3.2": ["a-scheduler"],
+  "1.3.3": ["a-sara"],
+  "1.3.4": ["a-assess"],
+  "1.3.5": ["a-report", "a-reports"],
+  "1.3.6": ["a-sara"],
+  "1.4":   ["a-known", "a-discovery", "a-nodup", "a-task4"],
+  "1.5":   ["a-sara"],
+  "2":     ["a-proto"],
+  "2.1":   ["a-proto"],
+  "2.2":   ["a-github", "a-vercel", "a-website"],
+  "2.3":   ["a-sara"],
+  "2.4":   ["a-scheduler", "a-records", "a-reports", "a-resources"],
+  "3":     [],
+  "3.1":   [],
+  "3.2":   ["d-sources", "d-projects", "d-records"],
+  "3.3":   ["d-records", "d-sources", "d-codelists"],
+  "3.4":   ["d-codelists", "d-agentmd"],
+  "3.5":   ["d-records"],
+  "3.6":   ["d-records"],
+  "3.7":   ["d-records"],
+  "3.8":   ["d-sources"],
+  "3.9":   ["d-projects"],
+  "4":     [],
+  "4.1":   ["d-sources", "d-projects", "d-records", "d-reports"],
+  "4.2":   ["d-developer", "d-owners", "d-sara"],
+  "4.3":   ["d-owners", "d-sources", "d-projects"],
+  "4.4":   ["d-sources", "d-projects"],
+  "4.5":   ["d-sources"],
+  "4.6":   ["d-agentmd", "d-codelists"],
+  "4.7":   ["d-records", "d-agentmd"],
+  "5":     ["top-web"]
+};
+/* Single paragraphs that point at a more specific box than their section. */
+const PARAGRAPH_MAP = [
+  ["1.3.3", /^Known Calls\./, ["a-known"]],
+  ["1.3.3", /^Discovery\./, ["a-discovery"]],
+  ["1.3.3", /^No Duplicate\./, ["a-nodup"]],
+  ["1.3.3", /^Assessment and report\./, ["a-task4", "a-assess", "a-record", "a-report"]],
+  ["1.3.3", /^However the run ends/, ["a-resources"]],
+  ["1.3.4", /^Two pieces of code/, ["a-record", "a-records"]],
+  ["3.1", /^The admin writes/, ["d-developer", "d-agentmd", "d-codelists"]],
+  ["3.1", /^Team members write/, ["d-owners", "d-sources", "d-projects"]],
+  ["3.1", /^The agent writes/, ["d-sara", "d-records", "d-reports"]]
+];
+const VIEW = { "1": "agent", "2": "agent", "3": "data", "4": "data", "5": "web" };
+const VIEWBOX = { agent: "70 40 1140 905", data: "70 40 1140 525", web: "70 40 1140 120" };
+
+/* ---------- Tag every block of the report ---------- */
+const blocks = [...document.getElementById("report").children];
+let section = "";
+for (const b of blocks) {
+  if (/^H[1-6]$/.test(b.tagName)) {
+    const m = b.textContent.trim().match(/^(\d+(?:\.\d+)*)/);
+    section = m ? m[1] : "";
+    if (m) b.id = "s" + m[1].replace(/\./g, "-");
+  }
+  let key = section, hl = [];
+  while (key && !(key in SECTION_MAP)) key = key.replace(/\.?\d+$/, "");
+  if (key) hl = SECTION_MAP[key];
+  const text = b.textContent.trim();
+  for (const [sec, re, ids] of PARAGRAPH_MAP) if (sec === section && re.test(text)) hl = ids;
+  b._view = VIEW[section.split(".")[0]] || "agent";
+  b._hl = hl;
+}
+
+/* ---------- Scroll tracking ---------- */
+const aside = document.querySelector(".visual");
+let currentBlock = null;
+function apply(b) {
+  if (b === currentBlock) return;
+  currentBlock = b;
+  const view = b._view;
+  svg.setAttribute("viewBox", VIEWBOX[view]);
+  A.classList.toggle("show", view === "agent");
+  D.classList.toggle("show", view === "data");
+  for (const v of ["agent", "data", "web"])
+    document.getElementById("top-" + v).classList.toggle("current", v === view);
+  svg.querySelectorAll(".hl").forEach(n => n.classList.remove("hl"));
+  b._hl.forEach(id => document.getElementById(id).classList.add("hl"));
+}
+function update() {
+  const stacked = window.matchMedia("(max-width: 900px)").matches;
+  const top = stacked ? aside.getBoundingClientRect().bottom : 0;
+  const line = top + (window.innerHeight - top) * 0.35;
+  let active = blocks[0];
+  for (const b of blocks) {
+    if (b.getBoundingClientRect().top <= line) active = b; else break;
+  }
+  apply(active);
+}
+let ticking = false;
+const onScroll = () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => { ticking = false; update(); });
+};
+addEventListener("scroll", onScroll, { passive: true });
+addEventListener("resize", onScroll);
+update();
+</script>
+</body>
+</html>

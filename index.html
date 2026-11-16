@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Innovation Funding Desk - Developer Report</title>
+<style>
+  :root {
+    --bg: #ffffff; --text: #22201c; --muted: #6b675f; --line: #cfccc2;
+    --box: #ffffff; --panel: #faf9f6; --code: #f3f1ec;
+    --red: #b8432d; --red-bg: #fbe9e3; --red-text: #8f2f1d;
+    --grey: #8a877f; --grey-bg: #f1eee8;
+    --green: #3f9d7a; --green-bg: #e1f3ec; --green-text: #17603f;
+    --blue: #2f6fde; --blue-bg: #e3edff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #181715; --text: #ece9e2; --muted: #a39f95; --line: #55524b;
+      --box: #211f1c; --panel: #1c1b18; --code: #262420;
+      --red: #e0705a; --red-bg: #3a211b; --red-text: #f3a797;
+      --grey: #8f8b82; --grey-bg: #2b2925;
+      --green: #56b892; --green-bg: #17322a; --green-text: #8fdcbb;
+      --blue: #6f9cf5; --blue-bg: #1d2f55;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif; }
+  .layout { display: flex; align-items: flex-start; }
+  .visual { position: sticky; top: 0; height: 100vh; flex: 0 0 54%; padding: 20px 8px 20px 20px;
+    background: var(--panel); border-right: 1px solid var(--line); display: flex; }
+  .visual svg { width: 100%; height: 100%; display: block; }
+  article { flex: 1 1 0; min-width: 0; padding: 40px 40px 70vh; max-width: 760px; }
+
+  article h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 1.2em; }
+  article h2 { font-size: 1.45rem; margin: 2.6em 0 .6em; padding-top: .8em; border-top: 1px solid var(--line); }
+  article h3 { font-size: 1.15rem; margin: 2em 0 .5em; }
+  article h4 { font-size: 1rem; margin: 1.6em 0 .4em; color: var(--muted); }
+  article p, article ul, article ol { margin: 0 0 1em; }
+  article li { margin-bottom: .3em; }
+  article code { background: var(--code); padding: .1em .35em; border-radius: 4px; font-size: .88em;
+    overflow-wrap: anywhere; }
+  article pre { background: var(--code); padding: 14px 16px; border-radius: 8px; overflow-x: auto;
+    font-size: .85rem; line-height: 1.5; }
+  article pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+  article table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: 0 0 1.2em; display: block; overflow-x: auto; }
+  article th, article td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+  article th { background: var(--code); }
+  article > * { transition: opacity .25s; }
+
+  /* diagram */
+  svg text { font-family: inherit; fill: var(--text); }
+  .t { font-size: 15px; font-weight: 650; text-anchor: middle; }
+  .s { font-size: 13px; fill: var(--muted); text-anchor: middle; }
+  .lbl { font-size: 12.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round; }
+  .grp { font-size: 15px; font-weight: 650; }
+  .box rect, rect.cont { fill: var(--box); stroke: var(--line); stroke-width: 1.4;
+    transition: fill .3s, stroke .3s, stroke-width .3s; }
+  rect.cont { fill: none; }
+  .arrow { fill: none; stroke: var(--line); stroke-width: 1.4; }
+  .frame { fill: none; stroke-width: 1.4; stroke-dasharray: 3 4; }
+  .detail { opacity: 0; transition: opacity .35s; pointer-events: none; }
+  .detail.show { opacity: 1; }
+
+  #top-agent rect { fill: var(--red-bg); stroke: var(--red); }
+  #top-agent text { fill: var(--red-text); }
+  #top-data rect { fill: var(--grey-bg); stroke: var(--grey); }
+  #top-web rect { fill: var(--green-bg); stroke: var(--green); }
+  #top-web text { fill: var(--green-text); }
+  .top .t { font-size: 19px; }
+  .top .s { font-size: 13.5px; fill: var(--text); }
+  .top.current rect { stroke-width: 3; }
+
+  .box.hl rect, rect.cont.hl, .top.hl rect { fill: var(--blue-bg) !important; stroke: var(--blue) !important; stroke-width: 2.4; }
+  rect.cont.hl { fill: none !important; }
+  .top.hl text { fill: var(--text) !important; }
+
+  @media (max-width: 900px) {
+    .layout { display: block; }
+    .visual { height: 44vh; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); z-index: 2; }
+    article { padding: 24px 16px 60vh; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="visual" aria-label="Architecture diagram"><svg id="diagram" viewBox="70 40 1140 905" preserveAspectRatio="xMidYMin meet" role="img"></svg></aside>
+  <article id="report">
+<h1>Innovation Funding Desk - Developer Report</h1>
+<h2>Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>FO (funding opportunity)</td>
+<td>A call, or a module or topic of a call, that can be assessed on its own.</td>
+</tr>
+<tr>
+<td>Funding call</td>
+<td>A call that gives money that is not repaid and has a dated round.</td>
+</tr>
+<tr>
+<td>FO record</td>
+<td>The JSON file for one FO, written by the agent.</td>
+</tr>
+<tr>
+<td>FO report</td>
+<td>The agent’s account of a call’s conditions and requirements.</td>
+</tr>
+<tr>
+<td>Call type</td>
+<td>Type 1, 2, 3 or Not relevant; with its categories, how a call relates to TenneT.</td>
+</tr>
+<tr>
+<td>TRAO</td>
+<td>Topic, Role, Activity, Outcome: the four taxonomy dimensions.</td>
+</tr>
+<tr>
+<td>Taxonomy code</td>
+<td>A stable code, such as T1 or R2, for one taxonomy value.</td>
+</tr>
+<tr>
+<td>Source</td>
+<td>A funding body’s site the workflow watches, one file each: a gateway or a programme.</td>
+</tr>
+<tr>
+<td>Project file</td>
+<td>A TenneT project used as a guide when judging fit; together, the innovation profile.</td>
+</tr>
+<tr>
+<td>Identification note</td>
+<td>Discovery’s output for one candidate: eight identifying fields.</td>
+</tr>
+<tr>
+<td>Date helper, gate</td>
+<td>Code in <code>AGENT.md</code> that sets the ISO dates and checks each saved FO record.</td>
+</tr>
+<tr>
+<td>Publish step</td>
+<td>The website reading the data folders when it builds.</td>
+</tr>
+</tbody></table>
+<h2>1. AI architecture</h2>
+<h3>1.1 The agent</h3>
+<p>The agent, SARA (Search, Assessment and Report Agent), is one file of instructions, <code>AGENT.md</code>. It works through four tasks in order: Known Calls, Discovery, No Duplicate, and Assessment and report. Its central output is a decision: every call receives one <code>call type</code>, with one or more categories, as defined in <code>resources/call_types.json</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Call type</th>
+<th>Definition</th>
+<th>Categories</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Type 1</td>
+<td>TenneT can receive money from the call: as lead, as a funded partner or as a funded buyer.</td>
+<td>C1.1 Lead of an infrastructure project; C1.2 Lead of an innovation project; C1.3 Funded consortium partner; C1.4 Funded innovation buyer</td>
+</tr>
+<tr>
+<td>Type 2</td>
+<td>TenneT can take part without receiving money, for example as an unfunded partner, a co-funder, a test-site or data provider, an end user or a peer of other grid operators.</td>
+<td>C2.1 Research-led; C2.2 Manufacturer-led or startup-led; C2.3 Peer-led (TSOs, DSOs, ENTSO-E); C2.4 Supporting role</td>
+</tr>
+<tr>
+<td>Type 3</td>
+<td>TenneT cannot take part, but the call touches its field and the funded work would plausibly benefit it through others.</td>
+<td>C3.1 Supply-chain capacity; C3.2 Products TenneT would buy; C3.3 Flexibility and demand; C3.4 Enabling technologies; C3.5 Knowledge; C3.6 Skills; C3.7 Environment, permitting and public support</td>
+</tr>
+<tr>
+<td>Not relevant</td>
+<td>The call does not touch TenneT’s field.</td>
+<td>None</td>
+</tr>
+</tbody></table>
+<p>For each Type 1, 2 or 3 call, the agent then reads the call in depth and writes the report a colleague reads on the website.</p>
+<h3>1.2 Reports by call type</h3>
+<p>Type 1 and Type 2 calls receive the same full report of conditions and requirements; the line between them does not matter for what the report must cover. Type 3 calls receive a brief, description-style report, so that a colleague can pass the call on to suppliers, startups or universities. Not relevant calls receive no report and are never shown to people.</p>
+<h3>1.3 Order of a run</h3>
+<h4>1.3.1 Scheduler</h4>
+<p>Each source has its own check interval, set in its source file; in the prototype, runs are scheduled tasks in a chat assistant.</p>
+<h4>1.3.2 Start of a run</h4>
+<p>The scheduler gives the chatbot <code>AGENT.md</code> plus one source name, for example “Follow the instructions in <code>AGENT.md</code> for the source: CETPartnership”. That is the whole start signal. The agent works through its tasks in order and writes each task’s output in full before it starts the next. Inside a task, it may search and reason as much as it needs, but the outputs are short: the known-calls list; one identification note per candidate; one line per candidate saying new or duplicate, with a one-sentence reason; and, in Assessment and report, a finding per step, with the reasoning before the label it leads to.</p>
+<h4>1.3.3 Tasks of a run</h4>
+<p>One run covers one funding source and ends with one FO record per new call in <code>data/fo_records/</code> and one FO report per new Type 1, 2 or 3 call in <code>data/fo_reports/</code>. A call that turns out to be unreadable, or not a funding call after all, gets neither.</p>
+<p><strong>Known Calls.</strong> The source name names one file in <code>resources/sources/</code>. Before searching, a short script lists the FO records whose <code>source</code> field holds that name, so a weekly run does not redo last week’s work.</p>
+<p><strong>Discovery.</strong> The agent opens the funder’s website at the starting URL in the source file and follows the navigation instructions written there: which listing to open, which filters to set, how to page through results. Priority projects are searched for first (Section 3.9). Only open or forthcoming funding calls become candidates, and a call counts as a funding call only if it gives money that is not repaid (no loans, guarantees, equity or tax credits) and has a dated round. Each candidate gets an identification note of eight fields, including its FO ID. Discovery stops after one call or one group of related calls, at most three per run; the rest are found in later runs.</p>
+<p><strong>No Duplicate.</strong> Funders republish calls, translate titles and list the same call on several pages. The agent compares each candidate with every FO record, from this source and from all others, on five fields judged together: organisation or parent framework, programme, call title, call module title and call year. A new year or a different module is a different opportunity. With Known Calls, this makes two checks: one before the search and one after.</p>
+<p><strong>Assessment and report.</strong> For each new call, the agent reads the call documents, decides how the call matters to TenneT (1.3.4) and saves a filled-in copy of <code>templates/fo_record.template.json</code> as <code>data/fo_records/&lt;FO ID&gt;.json</code>. Not relevant calls get a record too. For a Type 1, 2 or 3 call, it then writes the report (1.3.5) before moving to the next call.</p>
+<p>However the run ends, the agent closes by recording the scan time in the source file and correcting its starting URL or navigation if the site has changed. It changes nothing else.</p>
+<h4>1.3.4 Assessment</h4>
+<p>Assessment reads enough of the call to judge it, not every condition: the scope, activities and expected results, who may apply and from which countries, how TenneT could take part, and the consortium rules. The full detail is left for the report. The agent then names the project files that are close to the call, with what each shares with it and how it differs. The project files and the taxonomy guide the judgement; they are not hard tests.</p>
+<p>It then gives the call one type with one or more categories. The agent always decides; there is no “ask a person” outcome. A call in TenneT’s field whose participation route is unclear becomes Type 3, and one where TenneT can take part but funding is unclear becomes Type 2. The tool covers TenneT Netherlands only.</p>
+<p>Last, it assigns Topic, Role, Activity and Outcome codes from the taxonomy (T1, R1, A2, O3 and so on) and stores them in <code>taxonomy_values</code>. The website matches a colleague’s project against these codes, so the agent keeps only codes the call itself supports; a Type 3 call has no Role codes. The <code>status_rationale</code>, about four sentences naming the documents and sections relied on, explains why the call got its type.</p>
+<p>Two pieces of code close the task. The date helper turns the date facts the agent read into ISO dates, converting loose times such as “Q2 2027” and deriving a missing project date from the call’s longest duration; no date is typed by hand. The gate then checks the saved record against the template and the allowed values, and the agent moves on to the report only when it prints PASS. Both scripts are written inside <code>AGENT.md</code>, so they travel with the instructions.</p>
+<h4>1.3.5 Report</h4>
+<p>Once the record passes the gate, the agent turns each Type 1, 2 or 3 FO record into the report a colleague reads on the website. Writing the report never changes the FO record or its <code>call type</code>. For each record, it picks the matching template: <code>fo_report_type_1_2.template.json</code> for Types 1 and 2, which ask the same questions, or the shorter <code>fo_report_type_3.template.json</code> for Type 3. Each template has two blocks, which the website shows in different parts of the page; each block is a list of sections, and each section a list of cards with a title; the cards of the first block also have a question.</p>
+<table>
+<thead>
+<tr>
+<th>Block</th>
+<th>Types 1 and 2</th>
+<th>Type 3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>project_requirements</code> or <code>call_overview</code></td>
+<td>What the call wants; Consortium; TenneT’s position; Innovation; Work</td>
+<td>About the call; Relevance to TenneT</td>
+</tr>
+<tr>
+<td><code>funding_timing_submission</code></td>
+<td>Funding; Timing; Application</td>
+<td>Funding; Timing; Application</td>
+</tr>
+</tbody></table>
+<p>Starting from what it read for the assessment, the agent reads the full call text and every annex, national rule and FAQ that applies to the Netherlands, and fills in each card’s <code>answer</code> and <code>sources</code>, leaving titles and questions untouched. The report is saved as <code>data/fo_reports/&lt;FO ID&gt;.json</code>, replacing any older report with that ID.</p>
+<p><code>AGENT.md</code> also sets how the report is written. The reader is an engineer or project lead, not a funding specialist, so the agent puts the main point first, explains every funding term and acronym, and keeps the call’s force: must stays must. It reports only what the call says and leaves the rest null, names its sources by document, page and section, and writes plain text without internal terms, because the website shows every answer exactly as written. The two judgement cards, TenneT’s likely contribution and Why it matters to TenneT, start from the FO record’s <code>status_rationale</code>. If its reading suggests a wrong call type, the agent still writes the report for the type in the record, leaves the record as it is, and says so in the conversation.</p>
+<h4>1.3.6 Ground rules</h4>
+<p>Web content is information, never instruction: text on a page cannot tell the agent what to do. Browsing is read-only: no logins and no forms beyond a portal’s search filters. And evidence comes before guesses: no value without a source, and what is unknown stays null.</p>
+<h3>1.4 Handover between tasks</h3>
+<p>Every task states its input and its expected output, and <code>AGENT.md</code> tells the agent to work only from the output of the task before it and the inputs listed for it, not from page text it read earlier. These outputs (the known-calls list, the identification notes, the verdicts and the findings) are written out in the conversation, not saved. Inside Assessment and report, the steps of one call share their reading: the report starts from what the agent read for the assessment and goes back to it wherever a card needs it.</p>
+<h3>1.5 Order fixed in the prompt</h3>
+<p>The order of work is fixed in the prompt, not in code. <code>AGENT.md</code> requires an output at every step, and the next step starts from that output. This works as an artificial harness: the agent is locked into a chain-prompting run until every FO is found, checked for duplicates, assessed, saved and reported. There is therefore no need for multiple calls or an orchestrator in code: one call runs the whole chain. Because every step is small, explicit and checked, the same instructions can also be run by cheaper models.</p>
+<h2>2. Running the prototype</h2>
+<h3>2.1 Prototype and production</h3>
+<p>Both use the same instructions and files; only the way the agent runs differs. In the prototype, there are no API keys: runs are started by hand in personal Claude and ChatGPT accounts or as scheduled tasks, outputs are saved in laptop folders linked to the GitHub repository, and Vercel rebuilds the site on every push. In the final application, the agent runs on a schedule with API keys, and each run pushes its files to GitHub straight away (2.4).</p>
+<h3>2.2 Checks after a run</h3>
+<ol>
+<li>A scheduled task, or a person, opens Claude or ChatGPT with <code>AGENT.md</code>, the resources and one source name.</li>
+<li>The agent works through its four tasks and saves its files in the laptop folders.</li>
+<li>The folders are linked to the GitHub repository, so new files reach it, and Vercel rebuilds the website.</li>
+</ol>
+<p>After a run, a person reads the findings the agent wrote in the conversation and spot-checks a few call types and Not relevant verdicts against the call text.</p>
+<h3>2.3 Trial runs</h3>
+<p>The first trial, on 6 November 2026, ran on all 11 modules of the CETPartnership Joint Call 2026: 3 were kept (CM2026-01, -02 and -08) and 8 dropped, under the statuses used at the time. The built-in page fetch read only about 64 of the 101 pages of the call text, so long documents are now read part by part.</p>
+<p>A second trial, on 15 November 2026, ran the current instructions on the EU Funding &amp; Tenders Portal and RVO sources. Each produced one FO record and one FO report: a Horizon Europe storage-retrofit topic as Type 1 (Section 3.7) and RVO’s BMKB-Groen as Type 3. BMKB-Groen is a credit guarantee, which the funding-call test should have excluded, so it belongs in the test set as a known miss. The duplicate path against existing records, the priority searches, and Type 2 and Not relevant verdicts are not yet tested in a live run.</p>
+<h3>2.4 Production</h3>
+<p>Production keeps the same <code>AGENT.md</code>. A scheduled job, for example a GitHub Actions workflow on a timer, starts the agent with an API key kept as a secret, never written in the repository. The job works on a copy of the repository, so the agent writes straight into <code>data/fo_records/</code>, <code>data/fo_reports/</code> and <code>resources/sources/</code>. A sketch, not working code:</p>
+<pre><code># scheduled job; the API key comes from the repository&#39;s secrets
+for source in sources_due(&quot;resources/sources/&quot;):
+    run_agent(&quot;AGENT.md&quot;, source.source_name)      # writes data/fo_records/ and data/fo_reports/
+commit_and_push(&quot;data/&quot;, &quot;resources/sources/&quot;)     # Vercel deploys the push
+</code></pre>
+<h2>3. Data contract</h2>
+<h3>3.1 Folders and who writes them</h3>
+<p>The folders are organised by who writes them, so that every folder has one party to answer for it.</p>
+<p>The admin writes the instructions and the fixed reference files: <code>AGENT.md</code>, which holds every rule; <code>templates/</code>, which holds the blank <code>fo_record</code>, source and project forms plus the two report templates; and, in <code>resources/</code>, <code>tennet_taxonomy.json</code> (the Topic, Role, Activity and Outcome codes, labels and definitions) and <code>call_types.json</code> (Types 1 to 3, Not relevant and their categories).</p>
+<p>Team members write <code>resources/sources/</code>, one file per funding source, and <code>resources/projects/</code>, one file per TenneT project. The agent may update a source file’s scan time and broken navigation, and nothing else.</p>
+<p>The agent writes the data: <code>data/fo_records/</code>, one file per funding opportunity, never changing or deleting an existing record, and <code>data/fo_reports/</code>, one report per kept call. A PDF the agent had to download goes in <code>pdfs/</code>, a working folder outside the data contract.</p>
+<pre><code>AGENT.md
+templates/   fo_record, source, project, fo_report_type_1_2, fo_report_type_3 (.template.json)
+resources/   sources/, projects/, tennet_taxonomy.json, call_types.json
+data/        fo_records/, fo_reports/
+pdfs/
+</code></pre>
+<h3>3.2 One file per item</h3>
+<p>Every funding opportunity, source and project is its own JSON file, following one template per kind. An FO record’s ID is also its file name: the creation time to the second plus a counter (20261115-125155-01), so two FOs made in the same second still differ. This shows each change per item in git, lets the AI open one small file instead of a large table, and ensures that two runs never edit the same file.</p>
+<h3>3.3 How the files point to each other</h3>
+<p>An FO record’s <code>source</code> field holds the source’s <code>source_name</code>. Sources are identified by <code>source_name</code> and projects by <code>project_name</code>; neither has an ID field, and each file is named after its name in lowercase with underscores. Taxonomy values are stored as codes (T1, R2, A7, O9) that point into <code>tennet_taxonomy.json</code>, and screens show the labels. The <code>call_type</code> and <code>category_codes</code> fields point into <code>call_types.json</code>.</p>
+<h3>3.4 Blank templates, rules in the instructions</h3>
+<p>The <code>*.template.json</code> files are clean blank forms: null for single values and [] for lists, with no placeholders, types, units or allowed values. Every rule lives only in <code>AGENT.md</code>. There is one place to change a rule, the form stays readable for people, and no two copies of a rule drift apart. The trade-off is that outputs need a check afterwards: the gate does this for FO records, <code>check-data</code> also checks reports against their templates, and a check for source and project files is still to build.</p>
+<h3>3.5 Formats for code</h3>
+<p>The agent reads free text, but code must read every field without guessing. Dates are therefore ISO dates (“start of February 2027” becomes 2027-02-01), so code can sort and compare them. Project sizes are plain digits (5000000, not “EUR 5m”), so the website can filter by budget. Taxonomy values are codes (T4, not its label), so labels can be reworded without breaking records. Missing information is always null, never N/A or Unknown, so there is one test for “not known”. And an FO ID never changes, so other files and history keep pointing to it.</p>
+<h3>3.6 FO record lifecycle</h3>
+<p>An FO record is created in Assessment, seen again in later runs through Known Calls and No Duplicate, and will be closed by a code step, still to build, when its deadlines pass. It is never deleted. Not relevant records stay too, only so the agent does not investigate the same call again; they are never shown to people.</p>
+<h3>3.7 Worked example</h3>
+<p>The record below was made in a trial run on 15 November 2026 from the EU Funding &amp; Tenders Portal source; the longer text fields are shortened.</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;20261115-125155-01&quot;,
+  &quot;source&quot;: &quot;EU Funding &amp; Tenders Portal calls for proposals&quot;,
+  &quot;display_title&quot;: &quot;HORIZON-CL5-2027-07-D3-27 Integrated Approaches for Retrofitting Infrastructures with Innovative Energy Storage Technologies – Horizon Europe&quot;,
+  &quot;organization_or_parent_framework&quot;: &quot;European Commission&quot;,
+  &quot;programme&quot;: &quot;Horizon Europe&quot;,
+  &quot;call_title&quot;: &quot;ENERGY (HORIZON-CL5-2027-07)&quot;,
+  &quot;call_module_title&quot;: &quot;HORIZON-CL5-2027-07-D3-27 Integrated Approaches for […]&quot;,
+  &quot;call_year&quot;: 2027,
+  &quot;url&quot;: &quot;https://ec.europa.eu/info/funding-tenders/[…]/HORIZON-CL5-2027-07-D3-27&quot;,
+  &quot;executive_summary&quot;: &quot;Horizon Europe innovation action for demonstrating […]&quot;,
+  &quot;pre_submission_deadline&quot;: null,
+  &quot;full_proposal_deadline&quot;: &quot;2027-12-01&quot;,
+  &quot;earliest_project_start_date&quot;: null,
+  &quot;project_end_date&quot;: null,
+  &quot;minimum_project_size&quot;: null,
+  &quot;maximum_project_size&quot;: null,
+  &quot;date_last_checked&quot;: &quot;2026-11-15&quot;,
+  &quot;status_rationale&quot;: &quot;[…] Type 1 and C1.3 describe TenneT participating as a funded consortium partner.&quot;,
+  &quot;call_type&quot;: &quot;Type 1&quot;,
+  &quot;category_codes&quot;: [&quot;C1.3&quot;],
+  &quot;taxonomy_values&quot;: {
+    &quot;topic&quot;: [&quot;T5&quot;, &quot;T8&quot;, &quot;T9&quot;],
+    &quot;role&quot;: [&quot;R2&quot;, &quot;R5&quot;],
+    &quot;activity&quot;: [&quot;A4&quot;, &quot;A7&quot;, &quot;A8&quot;],
+    &quot;outcome&quot;: [&quot;O2&quot;, &quot;O5&quot;, &quot;O6&quot;, &quot;O9&quot;, &quot;O10&quot;]
+  }
+}
+</code></pre>
+<p>On the website, this record becomes one card: Horizon Europe as programme, the display title, and 1 December 2027 as submission deadline, ranked by its taxonomy codes. It also shows the null convention at work. The topic gives an indicative grant rather than a limit, and no project dates, so the sizes and project dates stay null rather than being guessed.</p>
+<h3>3.8 Source files</h3>
+<p>Each funding source has one file, built from <code>source.template.json</code>, in two parts. The scheduler reads <code>scheduling_setting</code>: <code>enabled_disabled</code> (&quot;enabled&quot; or &quot;disabled&quot;), <code>monitoring_interval</code> (whole days, for example 7), <code>first_run_on</code> (an ISO date) and <code>last_completed_scan_at</code> (an ISO date and time, null until the first complete run). The agent reads <code>parameters_passed_to_the_agent</code>.</p>
+<p>The <code>portal_type</code> is gateway or programme, following the September 2026 funding-sources memo. A gateway, such as RVO or the EU Funding &amp; Tenders Portal, collects opportunities from many programmes; a programme source, such as CETPartnership or the I3 Instrument, covers one. Because a programme’s calls can also appear on a gateway, the duplicate check treats the same call reached through two sources as one FO, and a gateway’s scope can leave out a programme that has its own file, as the Funding &amp; Tenders file does for I3. The memo suggests testing both routes to see which finds relevant calls more efficiently without missing any.</p>
+<p>The other agent fields always hold the same kind of information. The <code>starting_url</code> is where the search begins. The <code>search_scope</code> says which opportunities count: what one FO is, which identifier is its call reference, which programmes to cover and what to skip. The <code>navigation_instructions</code> are numbered steps in a fixed order: the reading tool (sources that load results with JavaScript, such as the Funding &amp; Tenders Portal and RVO, need a browser), the filters and paging, what each detail page holds, which document is authoritative, and how to spot changes. The <code>link_scope</code> says which domains the agent may and may not follow, and the <code>completion_rules</code> say when a run is finished and what to report if the search limit is reached first.</p>
+<h3>3.9 Project files</h3>
+<p>Each project file describes a real TenneT project: its name, a short description and its taxonomy codes. Teams maintain these files so that the AI learns how the taxonomy values feed different projects; the agent only reads them. Together, the 34 project files form the TenneT innovation profile, against which Assessment compares every call.</p>
+<p>A source file tells the agent where to search, but not what to look for, so without guidance it finds calls in roughly the order the portal lists them. To let teams steer the search, each project file has a <code>priority</code> field (&quot;high&quot; or &quot;none&quot;) and an optional expiry date, <code>priority_until</code>. High-priority projects get a second role in Discovery: the agent first runs searches built from their description and codes, within the source’s scope, and falls back to the general search only when these find nothing new. Priority affects only which calls are found first, never how they are assessed. The flag is set by people, the innovation team or a project team through them, and its expiry date ends it automatically, so a forgotten flag cannot keep steering the search.</p>
+<h2>4. Maintenance</h2>
+<h3>4.1 Why JSON</h3>
+<p>JSON gives every item one short form, with the same fields every time, readable as plain text. People and the AI read the same file, so there is nothing to translate. Compared with Excel, there are no merged cells, hidden columns or formatting for the AI to trip over; compared with a database, there is no hosting or access rights to arrange for the pilot.</p>
+<p>Later, code will read these folders and show each one in the user interface as a spreadsheet-like table, where each file is a row and each field is a column that people can view and edit. Because every file follows its schema, the folders work like a simple document database. If the tool grows, they can be moved into a hosted document database, such as MongoDB running on Azure, with little rework, since each JSON file maps directly to one stored document.</p>
+<p>For the FO workflow, we keep the JSON templates blank: field names and structure only, with every rule and allowed value in the agent’s .md instructions. This follows what developers using the OpenAI and Anthropic APIs do: instructions and definitions go in the prompt, and the output format only fixes the structure. A 2026 study (“Your Prompt Is Not the Only Prompt”, Lin) supports it. Putting label definitions in the output format didn’t consistently beat putting them in the prompt, and when the two conflicted, accuracy dropped by 5 to 45 points, so writing the rules in one place is safer. Because we run the agent manually in chat rather than through the API, we can’t force the output to match a schema. So each record is checked after it’s written.</p>
+<h3>4.2 Who maintains what</h3>
+<p>The AI creates FO records and reports; people create and edit source and project files; an admin owns the taxonomy, call types, templates and instructions. The maintainers are not developers but product owners, procurement specialists and asset managers. Which role owns which folder, and how often they check it, is still open.</p>
+<h3>4.3 Editing</h3>
+<p>Today, a maintainer copies a blank template, fills it in and saves it in its folder. The plan is for code to show each folder as a spreadsheet-like table, where editing a cell writes the file.</p>
+<h3>4.4 Editing rules</h3>
+<p>Fields come from the template: never add or rename a field by hand. Sources and projects are identified by their name, so renaming one breaks the FO records that point to it; rename only together with a fix-up of those records. A check that catches empty or wrong fields in source and project files is still to build.</p>
+<h3>4.5 Adding a funding source</h3>
+<ol>
+<li>Copy <code>source.template.json</code>.</li>
+<li>Fill in the source name, the scheduling settings and the agent fields (Section 3.8).</li>
+<li>Open the starting URL with a plain page fetch. If the call list shows, a fetch is enough; if not, note in the first navigation step that a browser is needed.</li>
+<li>Save it in <code>resources/sources/</code>.</li>
+<li>The scheduler picks it up at the next due date.</li>
+</ol>
+<p>The current <code>eu_funding_tenders_portal.json</code> is a good model for navigation instructions.</p>
+<h3>4.6 Changing the instructions and the data</h3>
+<p><code>AGENT.md</code> should carry a version line and a version history, raised with every change; it has none yet. A field rule changed in <code>AGENT.md</code> must also be changed in its gate. A taxonomy code never changes and is never reused, although its label may be reworded; the current taxonomy already leaves retired codes such as R4 and A1 unused. Adding a field means three places: the template, the .md that says how to fill it, and the website if it shows it.</p>
+<h3>4.7 Quality checks</h3>
+<p>A person spot-checks some Not relevant verdicts each month, since a wrong Not relevant is the error nobody else will see. The test set is re-run after every change to <code>AGENT.md</code>.</p>
+<h2>5. Website</h2>
+<h3>5.1 Questionnaire and results</h3>
+<p>The website is a static site on Vercel, built with ChatGPT Sites (React and TypeScript), with no server, login or API keys. Answers stay in the browser and reset on reload.</p>
+<p>A landing page leads to six questions, one per screen, with Back, Continue and Start over. Questions 1 to 4 are Topic, Role, Activity and Outcome: multi-select, at least one value each, with Select all and Clear. Each option shows its definition on hover, and a help panel shows how a real TenneT project, InterOPERA, answered. Question 5 is the project’s total budget, a range slider from EUR 10,000 to EUR 1 billion with quick ranges. Question 6 is timing: a start range by quarter, and an optional end range.</p>
+<p>The results page shows the answers in a collapsible summary, then one card per call: match percentage (green from 50%), programme, title, project size, possible funding, project window and submission window. Clicking a card opens its detail view: the report’s two blocks (1.3.5), Apply, which opens the funder’s page, and Share, which copies the link. The options in Questions 1 to 4, with their definitions, are read from <code>tennet_taxonomy.json</code>.</p>
+<h3>5.2 Match score</h3>
+<p>Topic, Role, Activity and Outcome decide the score. For each dimension, the site takes the share of the colleague’s selected values that also appear in the call’s codes, then averages those shares:</p>
+<pre><code>score = (1 / |D|) × Σ over d in D of  |S_d ∩ F_d| / |S_d|
+</code></pre>
+<p><code>S_d</code> is what the colleague selected in dimension d, <code>F_d</code> the call’s codes for it in <code>taxonomy_values</code>, and D the dimensions with at least one selection (in practice all four). A call whose codes cover every value in a dimension matches everything selected there. Calls with no matching value are hidden; ties go to the call with more matched values, then alphabetically. For the record in Section 3.7, a colleague who selects T5 and T7, R2, A7 and A8, and O9 and O10 matches 50%, 100%, 100% and 100%: a score of 87.5%.</p>
+<h3>5.3 Budget and timing filters</h3>
+<p>Budget and timing do not change the match score; they filter. Each gives a call one status: Fits (shown, with a note if the fit depends on part of the user’s range), Partly (the call can fund only part of the project; shown with a warning) or Hidden (the call cannot fund the project). If either status is Hidden, the call is hidden; if either is Partly, the card shows the warning. Users give ranges, so each call is judged by its best case, and a bound the FO record leaves null is not tested.</p>
+<p><strong>Timing.</strong> The user enters a start range, S1 to S2 (required), and an end range, E1 to E2 (optional). The FO record holds a project window from CS (earliest project start) to CE (latest project end).</p>
+<p>Calls pay only for work done inside the project window. Work before the start isn’t funded, and a project that has already started may not be eligible at all. So a project that can only start before the call does is hidden. A project that starts in time but runs past the call’s end can still be funded up to the end date. So it’s shown with a warning, not hidden.</p>
+<ul>
+<li>Hidden if S2 &lt; CS (every possible start is before the call starts) or S1 &gt; CE (the project starts after the call’s window closes).</li>
+<li>Fits if S2 ≥ CS and E1 ≤ CE, with the note “Fits if you start in [CS] or later” if S1 &lt; CS, and “Fits if you finish by [CE]” if E2 &gt; CE.</li>
+<li>Partly in every other case: the start works, but every possible end is after CE. Warning: “Only work until [CE] is funded.”</li>
+<li>No end range given: only the start is checked. The FO is hidden if S2 &lt; CS or S1 &gt; CE. Otherwise it fits.</li>
+</ul>
+<p><strong>Budget.</strong> The user gives a total budget B1 to B2; the FO record holds a range CMin to CMax, or a single maximum P (“up to 60M” is 60M, not 0 to 60M). Where a call states only its maximum grant, the agent has already recorded the size as grant divided by funding rate.</p>
+<ul>
+<li>Hidden if B2 &lt; CMin (or B2 &lt; P): the project is too small to scale up to the call.</li>
+<li>Fits if B1 ≤ CMax and B2 ≥ CMin (or B1 ≤ P ≤ B2), with a note on the bound the project must stay within.</li>
+<li>Partly if B1 &gt; CMax (or B1 &gt; P): the call can fund part of the project, up to CMax or P.</li>
+</ul>
+<h3>5.4 Publish step</h3>
+<p>The site reads <code>data/fo_records/</code>, <code>data/fo_reports/</code>, <code>tennet_taxonomy.json</code> and <code>call_types.json</code> when it builds. This is the publish step. Every push to the public repository rebuilds the site; a file that is broken or incomplete is left out, and the build log and <code>npm run check-data</code> name it.</p>
+
+  </article>
+</div>
+
+<script>
+/* ---------- Diagram definition ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("diagram");
+const el = (tag, attrs = {}, parent = svg, text) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (text != null) n.textContent = text;
+  parent.appendChild(n);
+  return n;
+};
+el("defs").innerHTML =
+  '<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">' +
+  '<path d="M0 0 L10 5 L0 10 z" fill="var(--line)"/></marker>';
+
+function box(parent, id, x, y, w, h, title, lines = [], cls = "box") {
+  const g = el("g", { id, class: cls }, parent);
+  el("rect", { x, y, width: w, height: h, rx: 8 }, g);
+  const lh = cls === "top" ? 28 : 19;
+  const total = (lines.length) * lh;
+  let ty = y + h / 2 - total / 2 + 5;
+  el("text", { x: x + w / 2, y: ty, class: "t" }, g, title);
+  lines.forEach((l, i) => el("text", { x: x + w / 2, y: ty + lh + i * (lh) - (cls === "top" ? 0 : 2), class: "s" }, g, l));
+  return g;
+}
+const arrow = (parent, d, both) =>
+  el("path", Object.assign({ d, class: "arrow", "marker-end": "url(#ah)" }, both ? { "marker-start": "url(#ah)" } : {}), parent);
+const label = (parent, x, y, text, anchor = "start") =>
+  el("text", { x, y, class: "lbl", "text-anchor": anchor }, parent, text);
+
+/* top row, always visible */
+box(svg, "top-agent", 110, 57, 318, 85, "Agent workflow", ["Search, Assessment and Report Agent (SARA)"], "top");
+box(svg, "top-data", 495, 57, 289, 85, "Data contract", ["Record, report, labels"], "top");
+box(svg, "top-web", 881, 57, 289, 85, "Web app", ["Reads and matches"], "top");
+arrow(svg, "M428 100 H492");
+arrow(svg, "M784 100 H878");
+
+/* ----- agent workflow detail ----- */
+const A = el("g", { id: "detail-agent", class: "detail" });
+el("path", { d: "M268 142 V192", class: "arrow", style: "stroke:var(--red)" }, A);
+el("rect", { x: 90, y: 192, width: 1100, height: 738, rx: 12, class: "frame", style: "stroke:var(--red)" }, A);
+box(A, "a-scheduler", 133, 229, 260, 74, "Scheduler", ["a source is due"]);
+arrow(A, "M263 303 V362");
+label(A, 276, 339, "AGENT.md + source_name");
+el("rect", { id: "a-sara", class: "cont", x: 109, y: 366, width: 1061, height: 182, rx: 8 }, A);
+el("text", { x: 133, y: 394, class: "grp" }, A, "SARA");
+box(A, "a-known", 133, 437, 144, 83, "1 Known Calls", ["calls on file"]);
+box(A, "a-discovery", 301, 437, 144, 83, "2 Discovery", ["1 to 3 new calls"]);
+box(A, "a-nodup", 469, 437, 144, 83, "3 No Duplicate", ["new or duplicate"]);
+el("rect", { id: "a-task4", class: "cont", x: 636, y: 406, width: 510, height: 129, rx: 8 }, A);
+el("text", { x: 652, y: 428, class: "grp" }, A, "4 Assessment and report");
+box(A, "a-assess", 652, 437, 144, 83, "Assess", ["steps 1 to 5", "call type + codes"]);
+box(A, "a-record", 816, 437, 144, 83, "Record", ["steps 6 and 7", "save, gate PASS"]);
+box(A, "a-report", 980, 437, 144, 83, "Report", ["step 8", "Types 1 to 3 only"]);
+["M277 479 H298", "M445 479 H466", "M613 479 H633", "M796 479 H813", "M960 479 H977"].forEach(d => arrow(A, d));
+box(A, "a-resources", 133, 598, 260, 91, "resources/ and templates/", ["sources, projects, taxonomy,", "call types, blank templates"]);
+arrow(A, "M225 598 V552");
+label(A, 213, 580, "read", "end");
+arrow(A, "M302 548 V594");
+label(A, 314, 580, "updates scan time");
+box(A, "a-records", 795, 598, 183, 91, "data/fo_records/", ["one file per call", "all call types kept"]);
+box(A, "a-reports", 993, 598, 177, 91, "data/fo_reports/", ["same file name", "Types 1 to 3"]);
+arrow(A, "M887 520 V594");
+label(A, 876, 574, "writes", "end");
+arrow(A, "M1051 520 V594");
+label(A, 1040, 574, "writes", "end");
+el("rect", { id: "a-proto", class: "cont", x: 109, y: 767, width: 852, height: 153, rx: 8 }, A);
+el("text", { x: 133, y: 793, class: "grp" }, A, "Only for Laptop-ran Prototype");
+arrow(A, "M393 655 H746 V805");
+label(A, 734, 748, "question texts, tags", "end");
+arrow(A, "M887 689 V805");
+label(A, 875, 742, "card data", "end");
+arrow(A, "M1081 689 V855 H943");
+label(A, 1021, 848, "detail pages", "middle");
+box(A, "a-website", 133, 809, 221, 92, "Website (live)", ["6 questions, ranked matches,", "filters, browse, detail pages"]);
+box(A, "a-vercel", 418, 809, 212, 92, "Vercel", ["builds the site from", "data/ and resources/"]);
+box(A, "a-github", 698, 809, 241, 92, "GitHub repository", ["check-data, then push", "main is live, branches preview"]);
+arrow(A, "M698 855 H634");
+label(A, 665, 846, "each push", "middle");
+arrow(A, "M418 855 H358");
+label(A, 387, 846, "static site", "middle");
+
+/* ----- data contract detail ----- */
+const D = el("g", { id: "detail-data", class: "detail" });
+el("path", { d: "M640 142 V192", class: "arrow", style: "stroke:var(--grey)" }, D);
+el("rect", { x: 90, y: 192, width: 1100, height: 356, rx: 12, class: "frame", style: "stroke:var(--grey)" }, D);
+box(D, "d-developer", 109, 221, 328, 68, "Developer", ["owns the rules and code lists"]);
+box(D, "d-owners", 476, 221, 328, 68, "Owners", ["maintain sources and projects"]);
+box(D, "d-sara", 843, 221, 327, 68, "SARA", ["writes the data, updates scan time"]);
+box(D, "d-agentmd", 109, 346, 160, 87, "AGENT.md", ["every rule, gate,", "date helper"]);
+box(D, "d-codelists", 278, 346, 159, 87, "Code lists", ["templates/, taxonomy,", "call types"]);
+box(D, "d-sources", 476, 346, 159, 87, "resources/sources/", ["one file per source,", "where to search"]);
+box(D, "d-projects", 645, 346, 159, 87, "resources/projects/", ["one file per project,", "priority flag"]);
+box(D, "d-records", 843, 346, 149, 87, "data/fo_records/", ["one file per call,", "never deleted"]);
+box(D, "d-reports", 1021, 346, 149, 87, "data/fo_reports/", ["one per Type 1 to 3", "call"]);
+["M189 289 V342", "M357 289 V342", "M555 289 V342", "M724 289 V342", "M917 289 V342", "M1095 289 V342", "M1021 390 H996"]
+  .forEach(d => arrow(D, d));
+label(D, 177, 321, "writes", "end");
+label(D, 543, 321, "writes", "end");
+label(D, 905, 321, "writes", "end");
+label(D, 1006, 334, "same id", "middle");
+arrow(D, "M880 433 V481 H572 V437");
+label(D, 736, 474, "source = source_name", "middle");
+arrow(D, "M938 433 V520 H357 V437");
+label(D, 649, 512, "taxonomy codes, call type, categories", "middle");
+
+/* ---------- Which box belongs to which part of the report ---------- */
+/* Keyed by section number; the longest matching prefix wins. */
+const SECTION_MAP = {
+  "1":     ["a-sara"],
+  "1.1":   ["a-sara"],
+  "1.2":   ["a-report"],
+  "1.3":   ["a-sara"],
+  "1.3.1": ["a-scheduler"],
+  "1.3.2": ["a-scheduler"],
+  "1.3.3": ["a-sara"],
+  "1.3.4": ["a-assess"],
+  "1.3.5": ["a-report", "a-reports"],
+  "1.3.6": ["a-sara"],
+  "1.4":   ["a-known", "a-discovery", "a-nodup", "a-task4"],
+  "1.5":   ["a-sara"],
+  "2":     ["a-proto"],
+  "2.1":   ["a-proto"],
+  "2.2":   ["a-github", "a-vercel", "a-website"],
+  "2.3":   ["a-sara"],
+  "2.4":   ["a-scheduler", "a-records", "a-reports", "a-resources"],
+  "3":     [],
+  "3.1":   [],
+  "3.2":   ["d-sources", "d-projects", "d-records"],
+  "3.3":   ["d-records", "d-sources", "d-codelists"],
+  "3.4":   ["d-codelists", "d-agentmd"],
+  "3.5":   ["d-records"],
+  "3.6":   ["d-records"],
+  "3.7":   ["d-records"],
+  "3.8":   ["d-sources"],
+  "3.9":   ["d-projects"],
+  "4":     [],
+  "4.1":   ["d-sources", "d-projects", "d-records", "d-reports"],
+  "4.2":   ["d-developer", "d-owners", "d-sara"],
+  "4.3":   ["d-owners", "d-sources", "d-projects"],
+  "4.4":   ["d-sources", "d-projects"],
+  "4.5":   ["d-sources"],
+  "4.6":   ["d-agentmd", "d-codelists"],
+  "4.7":   ["d-records", "d-agentmd"],
+  "5":     ["top-web"]
+};
+/* Single paragraphs that point at a more specific box than their section. */
+const PARAGRAPH_MAP = [
+  ["1.3.3", /^Known Calls\./, ["a-known"]],
+  ["1.3.3", /^Discovery\./, ["a-discovery"]],
+  ["1.3.3", /^No Duplicate\./, ["a-nodup"]],
+  ["1.3.3", /^Assessment and report\./, ["a-task4", "a-assess", "a-record", "a-report"]],
+  ["1.3.3", /^However the run ends/, ["a-resources"]],
+  ["1.3.4", /^Two pieces of code/, ["a-record", "a-records"]],
+  ["3.1", /^The admin writes/, ["d-developer", "d-agentmd", "d-codelists"]],
+  ["3.1", /^Team members write/, ["d-owners", "d-sources", "d-projects"]],
+  ["3.1", /^The agent writes/, ["d-sara", "d-records", "d-reports"]]
+];
+const VIEW = { "1": "agent", "2": "agent", "3": "data", "4": "data", "5": "web" };
+const VIEWBOX = { agent: "70 40 1140 905", data: "70 40 1140 525", web: "70 40 1140 120" };
+
+/* ---------- Tag every block of the report ---------- */
+const blocks = [...document.getElementById("report").children];
+let section = "";
+for (const b of blocks) {
+  if (/^H[1-6]$/.test(b.tagName)) {
+    const m = b.textContent.trim().match(/^(\d+(?:\.\d+)*)/);
+    section = m ? m[1] : "";
+    if (m) b.id = "s" + m[1].replace(/\./g, "-");
+  }
+  let key = section, hl = [];
+  while (key && !(key in SECTION_MAP)) key = key.replace(/\.?\d+$/, "");
+  if (key) hl = SECTION_MAP[key];
+  const text = b.textContent.trim();
+  for (const [sec, re, ids] of PARAGRAPH_MAP) if (sec === section && re.test(text)) hl = ids;
+  b._view = VIEW[section.split(".")[0]] || "agent";
+  b._hl = hl;
+}
+
+/* ---------- Scroll tracking ---------- */
+const aside = document.querySelector(".visual");
+let currentBlock = null;
+function apply(b) {
+  if (b === currentBlock) return;
+  currentBlock = b;
+  const view = b._view;
+  svg.setAttribute("viewBox", VIEWBOX[view]);
+  A.classList.toggle("show", view === "agent");
+  D.classList.toggle("show", view === "data");
+  for (const v of ["agent", "data", "web"])
+    document.getElementById("top-" + v).classList.toggle("current", v === view);
+  svg.querySelectorAll(".hl").forEach(n => n.classList.remove("hl"));
+  b._hl.forEach(id => document.getElementById(id).classList.add("hl"));
+}
+function update() {
+  const stacked = window.matchMedia("(max-width: 900px)").matches;
+  const top = stacked ? aside.getBoundingClientRect().bottom : 0;
+  const line = top + (window.innerHeight - top) * 0.35;
+  let active = blocks[0];
+  for (const b of blocks) {
+    if (b.getBoundingClientRect().top <= line) active = b; else break;
+  }
+  apply(active);
+}
+let ticking = false;
+const onScroll = () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => { ticking = false; update(); });
+};
+addEventListener("scroll", onScroll, { passive: true });
+addEventListener("resize", onScroll);
+update();
+</script>
+</body>
+</html>
