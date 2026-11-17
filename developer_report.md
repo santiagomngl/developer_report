@@ -117,14 +117,38 @@ A second trial, on 15 November 2026, ran the current instructions on the EU Fund
 
 ### 2.4 Production
 
-Production keeps the same `AGENT.md`. A scheduled job, for example a GitHub Actions workflow on a timer, starts the agent with an API key kept as a secret, never written in the repository. The job works on a copy of the repository, so the agent writes straight into `data/fo_records/`, `data/fo_reports/` and `resources/sources/`. A sketch, not working code:
+Production keeps the same `AGENT.md`. A scheduled job, for example a GitHub Actions workflow on a timer, starts the agent with an API key kept as a secret, never written in the repository. The job works on a copy of the repository, so the agent writes straight into `data/fo_records/`, `data/fo_reports/` and `resources/sources/`, and the job then commits and pushes these folders so Vercel deploys the update.
 
-```
-# scheduled job; the API key comes from the repository's secrets
-for source in sources_due("resources/sources/"):
-    run_agent("AGENT.md", source.source_name)      # writes data/fo_records/ and data/fo_reports/
-commit_and_push("data/", "resources/sources/")     # Vercel deploys the push
-```
+The agent needs web search and a plain page fetch to read funders’ sites, plus a headless browser for sources that load their results with JavaScript, such as the Funding & Tenders Portal and RVO. It needs a PDF reader that reads long documents part by part, since a single fetch read only about 64 of 101 pages in the first trial (2.3). It needs a code runner for the date helper and the gate, and file access limited to reading `resources/` and `templates/` and writing `data/fo_records/`, `data/fo_reports/`, `pdfs/` and its own source file. It gets no logins, no form submission beyond a portal’s search filters, and no right to delete files or write anywhere else.
+
+If a cheaper model is used, the run can be split into a chain of calls, where code passes each task’s output to the next:
+
+1. Known Calls: code only, no model. The script lists the FO records whose `source` field holds the source name.
+2. Discovery: one call with the Discovery section of `AGENT.md`, the source file, the high-priority project files and the known-calls list. Output: the identification notes.
+3. No Duplicate: one call with its section, the identification notes and the FO records. Output: one new-or-duplicate verdict per candidate.
+4. Assessment: one call per new candidate, with its section, the identification note, `tennet_taxonomy.json`, `call_types.json` and the project files. The date helper and the gate then run as code; if the gate fails, the call is repeated with the gate’s message.
+5. Report: one call per Type 1, 2 or 3 record, with the report section and writing rules of `AGENT.md`, the FO record and the matching report template.
+6. Close: code records the scan time in the source file and applies any navigation fix that Discovery reported.
+
+Each call receives only its own section of `AGENT.md` and the inputs that 1.4 already lists for that task, so the handover stays the same; what changes is that code, not the prompt, enforces the order. The cost is a small orchestrator in code, which the single-call setup with a strong model does not need.
+
+### 2.5 Cost of runs
+
+The test sessions (November 16 2026) ran on Claude Opus 5.5. The first session ran at medium effort; the other two sessions ran in low. Costs are list-price estimates calculated from the token use each session logged, not billed amounts. Six production runs assessed 18 calls for about USD 13.30, or about USD 2.20 per run and about USD 0.74 per call assessed. Every call received an FO record, and the 13 calls found relevant also received an FO report. The cost of a relevant call, record and report together, is taken from the three runs in which every call was relevant: they cost USD 3.68 for 3 records and 3 reports, about USD 1.23 per relevant call, ranging from USD 1.76 in the first run to about USD 0.96 in the later two. Each of these runs assessed a single call, so the figure includes a full run’s start-up cost per call; in runs that assess five calls this cost is shared, and a relevant call is likely to cost less.
+
+A further run, on EU infrastructure funding calls at the EU Funding & Tenders Portal, ran on Claude Sonnet 5.5 and cost about USD 4.0 at list price. This is again an estimate from the logged token use, not a billed amount. The run found 4 new calls and saved 4 FO records and 3 FO reports, because one call was judged Not relevant and got no report. That is about USD 1.0 per call assessed, higher than the USD 0.74 benchmark. A record cost about USD 0.40 and a report about USD 0.40–0.45, and a relevant call with both cost about USD 0.85. An explanation for the increased costs is the run was search-heavy: it screened all 1,085 open and forthcoming topics and read the call text of the four candidates, as source navigation behavior was less specific.
+
+| Phase | Approx. cost (USD) |
+| --- | --- |
+| Discovery: source file, portal scan, topic checks | 0.9 |
+| Assessing the 4 candidates (reading the call, steps 1–5) | 1.3 |
+| Writing the 4 FO records and running the gate | 0.6 |
+| Preparing and writing the 3 FO reports | 0.95 |
+| Closing: source file update, commit and push | 0.3 |
+
+The model has no memory between steps, so at every step of a run the whole conversation so far is sent to it again: the instructions, AGENT.md, the source file and everything the agent has read and written. Each run took between 18 and 50 steps. The provider keeps a stored copy of this conversation, called the cache, so content already in it is re-read at a twentieth of the normal input price. These cache reads were the largest single cost: the fixed setup alone comes to about 114,000 tokens before the agent works on any call (this is the agent start-up cost).
+
+Method note: I summed the token usage that the session transcript logged. I priced them at the Claude Sonnet 5.5 list rates from the pricing reference: $2 per million input tokens, $10 per million output tokens and $0.10 per million cache-read tokens. No information was given on cache-write price, so $4 per million was assumed (if assumption is off, the total moves by about ±$0.5)
 
 ## 3. Data contract
 

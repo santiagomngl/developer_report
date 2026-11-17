@@ -199,7 +199,7 @@
 <p>One run covers one funding source and ends with one FO record per new call in <code>data/fo_records/</code> and one FO report per new Type 1, 2 or 3 call in <code>data/fo_reports/</code>. A call that turns out to be unreadable, or not a funding call after all, gets neither.</p>
 <p><strong>Known Calls.</strong> The source name names one file in <code>resources/sources/</code>. Before searching, a short script lists the FO records whose <code>source</code> field holds that name, so a weekly run does not redo last week’s work.</p>
 <p><strong>Discovery.</strong> The agent opens the funder’s website at the starting URL in the source file and follows the navigation instructions written there: which listing to open, which filters to set, how to page through results. Priority projects are searched for first (Section 3.9). Only open or forthcoming funding calls become candidates, and a call counts as a funding call only if it gives money that is not repaid (no loans, guarantees, equity or tax credits) and has a dated round. Each candidate gets an identification note of eight fields, including its FO ID. Discovery stops after one call or one group of related calls, at most three per run; the rest are found in later runs.</p>
-<p><strong>No Duplicate.</strong> Funders republish calls, translate titles and list the same call on several pages. The agent compares each candidate with every FO record, from this source and from all others, on five fields judged together: organisation or parent framework, programme, call title, call module title and call year. A new year or a different module is a different opportunity. With Known Calls, this makes two checks: one before the search and one after.</p>
+<p><strong>No Duplicate.</strong> Funders republish calls, translate titles and list the same call on several pages. The agent compares each candidate with every FO record, from this source and from all others, on five fields judged together: organisation or parent framework, programme, call title, call module title and call year. A new year or a different module is a different opportunity. With Known Calls, this makes two checks: one before the search and another after.</p>
 <p><strong>Assessment and report.</strong> For each new call, the agent reads the call documents, decides how the call matters to TenneT (1.3.4) and saves a filled-in copy of <code>templates/fo_record.template.json</code> as <code>data/fo_records/&lt;FO ID&gt;.json</code>. Not relevant calls get a record too. For a Type 1, 2 or 3 call, it then writes the report (1.3.5) before moving to the next call.</p>
 <p>However the run ends, the agent closes by recording the scan time in the source file and correcting its starting URL or navigation if the site has changed. It changes nothing else.</p>
 <h4>1.3.4 Assessment</h4>
@@ -250,12 +250,51 @@
 <p>The first trial, on 6 November 2026, ran on all 11 modules of the CETPartnership Joint Call 2026: 3 were kept (CM2026-01, -02 and -08) and 8 dropped, under the statuses used at the time. The built-in page fetch read only about 64 of the 101 pages of the call text, so long documents are now read part by part.</p>
 <p>A second trial, on 15 November 2026, ran the current instructions on the EU Funding &amp; Tenders Portal and RVO sources. Each produced one FO record and one FO report: a Horizon Europe storage-retrofit topic as Type 1 (Section 3.7) and RVO’s BMKB-Groen as Type 3. BMKB-Groen is a credit guarantee, which the funding-call test should have excluded, so it belongs in the test set as a known miss. The duplicate path against existing records, the priority searches, and Type 2 and Not relevant verdicts are not yet tested in a live run.</p>
 <h3>2.4 Production</h3>
-<p>Production keeps the same <code>AGENT.md</code>. A scheduled job, for example a GitHub Actions workflow on a timer, starts the agent with an API key kept as a secret, never written in the repository. The job works on a copy of the repository, so the agent writes straight into <code>data/fo_records/</code>, <code>data/fo_reports/</code> and <code>resources/sources/</code>. A sketch, not working code:</p>
-<pre><code># scheduled job; the API key comes from the repository&#39;s secrets
-for source in sources_due(&quot;resources/sources/&quot;):
-    run_agent(&quot;AGENT.md&quot;, source.source_name)      # writes data/fo_records/ and data/fo_reports/
-commit_and_push(&quot;data/&quot;, &quot;resources/sources/&quot;)     # Vercel deploys the push
-</code></pre>
+<p>Production keeps the same <code>AGENT.md</code>. A scheduled job, for example a GitHub Actions workflow on a timer, starts the agent with an API key kept as a secret, never written in the repository. The job works on a copy of the repository, so the agent writes straight into <code>data/fo_records/</code>, <code>data/fo_reports/</code> and <code>resources/sources/</code>, and the job then commits and pushes these folders so Vercel deploys the update.</p>
+<p>The agent needs web search and a plain page fetch to read funders’ sites, plus a headless browser for sources that load their results with JavaScript, such as the Funding &amp; Tenders Portal and RVO. It needs a PDF reader that reads long documents part by part, since a single fetch read only about 64 of 101 pages in the first trial (2.3). It needs a code runner for the date helper and the gate, and file access limited to reading <code>resources/</code> and <code>templates/</code> and writing <code>data/fo_records/</code>, <code>data/fo_reports/</code>, <code>pdfs/</code> and its own source file. It gets no logins, no form submission beyond a portal’s search filters, and no right to delete files or write anywhere else.</p>
+<p>If a cheaper model is used, the run can be split into a chain of calls, where code passes each task’s output to the next:</p>
+<ol>
+<li>Known Calls: code only, no model. The script lists the FO records whose <code>source</code> field holds the source name.</li>
+<li>Discovery: one call with the Discovery section of <code>AGENT.md</code>, the source file, the high-priority project files and the known-calls list. Output: the identification notes.</li>
+<li>No Duplicate: one call with its section, the identification notes and the FO records. Output: one new-or-duplicate verdict per candidate.</li>
+<li>Assessment: one call per new candidate, with its section, the identification note, <code>tennet_taxonomy.json</code>, <code>call_types.json</code> and the project files. The date helper and the gate then run as code; if the gate fails, the call is repeated with the gate’s message.</li>
+<li>Report: one call per Type 1, 2 or 3 record, with the report section and writing rules of <code>AGENT.md</code>, the FO record and the matching report template.</li>
+<li>Close: code records the scan time in the source file and applies any navigation fix that Discovery reported.</li>
+</ol>
+<p>Each call receives only its own section of <code>AGENT.md</code> and the inputs that 1.4 already lists for that task, so the handover stays the same; what changes is that code, not the prompt, enforces the order. The cost is a small orchestrator in code, which the single-call setup with a strong model does not need.</p>
+<h3>2.5 Cost of runs</h3>
+<p>The test sessions (November 16 2026) ran on Claude Opus 5.5. The first session ran at medium effort; the other two sessions ran in low. Costs are list-price estimates calculated from the token use each session logged, not billed amounts. Six production runs assessed 18 calls for about USD 13.30, or about USD 2.20 per run and about USD 0.74 per call assessed. Every call received an FO record, and the 13 calls found relevant also received an FO report. The cost of a relevant call, record and report together, is taken from the three runs in which every call was relevant: they cost USD 3.68 for 3 records and 3 reports, about USD 1.23 per relevant call, ranging from USD 1.76 in the first run to about USD 0.96 in the later two. Each of these runs assessed a single call, so the figure includes a full run’s start-up cost per call; in runs that assess five calls this cost is shared, and a relevant call is likely to cost less.</p>
+<p>A further run, on EU infrastructure funding calls at the EU Funding &amp; Tenders Portal, ran on Claude Sonnet 5.5 and cost about USD 4.0 at list price. This is again an estimate from the logged token use, not a billed amount. The run found 4 new calls and saved 4 FO records and 3 FO reports, because one call was judged Not relevant and got no report. That is about USD 1.0 per call assessed, higher than the USD 0.74 benchmark. A record cost about USD 0.40 and a report about USD 0.40–0.45, and a relevant call with both cost about USD 0.85. An explanation for the increased costs is the run was search-heavy: it screened all 1,085 open and forthcoming topics and read the call text of the four candidates, as source navigation behavior was less specific.</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Approx. cost (USD)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Discovery: source file, portal scan, topic checks</td>
+<td>0.9</td>
+</tr>
+<tr>
+<td>Assessing the 4 candidates (reading the call, steps 1–5)</td>
+<td>1.3</td>
+</tr>
+<tr>
+<td>Writing the 4 FO records and running the gate</td>
+<td>0.6</td>
+</tr>
+<tr>
+<td>Preparing and writing the 3 FO reports</td>
+<td>0.95</td>
+</tr>
+<tr>
+<td>Closing: source file update, commit and push</td>
+<td>0.3</td>
+</tr>
+</tbody></table>
+<p>The model has no memory between steps, so at every step of a run the whole conversation so far is sent to it again: the instructions, AGENT.md, the source file and everything the agent has read and written. Each run took between 18 and 50 steps. The provider keeps a stored copy of this conversation, called the cache, so content already in it is re-read at a twentieth of the normal input price. These cache reads were the largest single cost: the fixed setup alone comes to about 114,000 tokens before the agent works on any call (this is the agent start-up cost).</p>
+<p>Method note: I summed the token usage that the session transcript logged. I priced them at the Claude Sonnet 5.5 list rates from the pricing reference: $2 per million input tokens, $10 per million output tokens and $0.10 per million cache-read tokens. No information was given on cache-write price, so $4 per million was assumed (if assumption is off, the total moves by about ±$0.5)</p>
 <h2>3. Data contract</h2>
 <h3>3.1 Folders and who writes them</h3>
 <p>The folders are organised by who writes them, so that every folder has one party to answer for it.</p>
